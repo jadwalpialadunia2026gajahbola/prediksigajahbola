@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAJAHBOLA — Analisa & Prediksi Bola</title>
+    <link href="https://images.linkcdn.cloud/V2/507/favicon/favicon-1888287302.png" rel="icon" type="image/png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background: #000;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('https://i.imgur.com/zGbaikU.jpeg') no-repeat center center;
+            background-size: cover;
+            z-index: -2;
+            filter: brightness(0.4);
+        }
+
+        .bg-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-bottom: 2px solid #ffd700;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo img { height: 200px; width: auto; object-fit: contain; }
+
+        .menu-container { position: relative; }
+        .burger { cursor: pointer; padding: 5px; }
+        .burger span {
+            display: block; width: 25px; height: 3px;
+            margin: 5px 0; background: #ffd700; border-radius: 2px;
+        }
+
+        .dropdown-card {
+            display: none;
+            position: absolute;
+            top: 50px; right: 0;
+            background: rgba(17, 17, 17, 0.95);
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            width: 160px;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+        .dropdown-card.active { display: flex; }
+        .dropdown-card a {
+            color: white;
+            text-decoration: none;
+            padding: 12px 15px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .dropdown-card a:last-child { border-bottom: none; }
+        .dropdown-card a:hover { background: #ffd700; color: #000; }
+
+        /* MARQUEE */
+        .marquee-container {
+            background: #b32e2e;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #ffd700;
+        }
+        .marquee-content { width: 100%; }
+        .marquee-content marquee {
+            font-weight: 600; font-size: 14px; color: #fff; display: block;
+        }
+
+        /* BANNER SLIDER */
+        .banner-slider {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 21 / 9;
+            border-bottom: 2px solid #ffd700;
+        }
+        @media (max-width: 768px) {
+            .banner-slider { aspect-ratio: 16 / 9; }
+        }
+        .slider-wrapper {
+            display: flex;
+            transition: transform 0.6s ease-in-out;
+            height: 100%;
+        }
+        .slide { min-width: 100%; height: 100%; }
+        .slide img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        .prev-btn, .next-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.5); color: #ffd700;
+            border: none; font-size: 24px; padding: 10px;
+            cursor: pointer; z-index: 5;
+        }
+        .next-btn { right: 0; }
+        .prev-btn { left: 0; }
+
+        /* TAB FILTER */
+        .tab-filter {
+            display: flex; gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none;
+        }
+        .tab-filter::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid #ffd700;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+        .tab-btn.active { background: #ffd700; color: #000; }
+
+        /* SCHEDULE TABLE */
+        .schedule-section {
+            padding: 25px 20px;
+            max-width: 1100px;
+            margin: auto;
+        }
+        .section-title {
+            font-weight: 800;
+            color: #ffd700;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffd700;
+            padding-left: 15px;
+        }
+
+        .table-container {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid rgba(255,215,0,0.3);
+            margin-bottom: 30px;
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 15px;
+            text-align: left;
+            font-size: 13px;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+        }
+
+        /* MATCH CARDS */
+        .match-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1100px;
+            margin: auto;
+        }
+        .match-grid .card {
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(8px);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.2);
+            transition: 0.3s;
+        }
+        .match-grid .card:hover { border-color: #ffd700; transform: translateY(-5px); }
+
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .team { flex: 1; }
+        .team img {
+            width: 60px; height: 60px;
+            object-fit: contain;
+            border: 2px solid #ffd700;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        .team-logo-placeholder {
+            width: 60px; height: 60px;
+            border: 2px solid #ffd700;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin: 0 auto 5px;
+        }
+        .vs { font-size: 22px; font-weight: 800; color: #ffd700; padding: 0 10px; }
+        .score { font-size: 35px; font-weight: 700; margin: 10px 0; color: #fff; }
+
+        .copy-btn {
+            background: transparent;
+            color: #ffd700;
+            border: 1px dashed #ffd700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        .copy-btn:hover { background: rgba(255,215,0,0.1); }
+
+        .card-btn {
+            display: block;
+            background: #ffd700;
+            color: #000;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            transition: 0.3s;
+        }
+        .card-btn:hover { background: #fff; }
+
+        /* FLOATING BUTTON */
+        .floating {
+            position: fixed;
+            bottom: 20px; right: 20px;
+            background: #ffd700;
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 800;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+        }
+
+        /* DOTS */
+        .dots-container {
+            position: absolute;
+            bottom: 10px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 8px;
+        }
+        .dot {
+            width: 10px; height: 10px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .dot.active { background: #ffd700; width: 25px; border-radius: 10px; }
+
+        /* 3D CAROUSEL */
+        .page { width: 100%; overflow: hidden; padding: 20px 0; }
+        .scene {
+            width: 160px; height: 230px;
+            margin: 50px auto 70px auto;
+            perspective: 1000px;
+        }
+        .a3d {
+            width: 100%; height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate 25s linear infinite;
+        }
+        .a3d img.carousel-img {
+            position: absolute;
+            width: 100%; height: 100%;
+            padding: 0 !important;
+            background: none !important;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid #ffd700;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+            transform: rotateY(calc(var(--i) * (360deg / var(--n)))) translateZ(280px);
+        }
+        @keyframes rotate {
+            from { transform: rotateY(0deg); }
+            to   { transform: rotateY(360deg); }
+        }
+
+        /* EMPTY / LOADING STATE */
+        .state-msg {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.4);
+            font-size: 14px;
+        }
+        .loader-ring {
+            display: inline-block;
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,215,0,0.2);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<!-- HEADER -->
+<header>
+    <div class="logo">
+        <img src="https://i.imgur.com/CsjDDHg.png" alt="Logo GAJAHBOLA">
+    </div>
+    <div class="menu-container">
+        <div class="burger" id="burger">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="dropdown-card" id="dropdownCard">
+            <a href="https://gajahbolamvp.com">Login</a>
+            <a href="https://gajahbolamvp.com/register">Daftar</a>
+            <a href="https://GAJAHBOLA-game-world--colombogelap.replit.app">Profil</a>
+        </div>
+    </div>
+</header>
+
+<!-- RUNNING TEXT (dinamis dari Supabase) -->
+<div class="marquee-container">
+    <div class="marquee-content">
+        <marquee scrollamount="5" id="marqueeText">
+            📢 GAJAHBOLA: Prediksi Terakurat Hari Ini! Memuat data...
+        </marquee>
+    </div>
+</div>
+
+<!-- BANNER SLIDER (dinamis dari Supabase) -->
+<section class="banner-slider">
+    <div class="slider-wrapper" id="slider">
+        <!-- Diisi oleh JavaScript -->
+        <div class="slide"><img src="https://i.imgur.com/VDY1cAE.png" alt="Banner"></div>
+    </div>
+    <button class="prev-btn" id="prevBtn">&#10094;</button>
+    <button class="next-btn" id="nextBtn">&#10095;</button>
+    <div class="dots-container" id="dotsContainer"></div>
+</section>
+
+<!-- JADWAL & ANALISA -->
+<section class="schedule-section">
+    <div class="section-title">📊 ANALISA PELUANG (HOME | DRAW | AWAY)</div>
+
+    <div class="tab-filter" id="tabFilter">
+        <button class="tab-btn active" onclick="filterLeague('ALL')">SEMUA</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Liga</th>
+                    <th>Pertandingan</th>
+                    <th>Win Prob (%)</th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody">
+                <tr><td colspan="4">
+                    <div class="state-msg"><span class="loader-ring"></span>Memuat jadwal...</div>
+                </td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3D Carousel -->
+   <div class="page">
+        <div class="scene">    
+            <div class="a3d" style="--n: 12">      
+                <img class="carousel-img" style="--i: 0"  src="https://i.imgur.com/Uceed81.png" alt="Slide 1">      
+                <img class="carousel-img" style="--i: 1"  src="https://i.imgur.com/NIrVpQn.png" alt="Slide 2">      
+                <img class="carousel-img" style="--i: 2"  src="https://i.imgur.com/px07dVq.png" alt="Slide 3">      
+                <img class="carousel-img" style="--i: 3"  src="https://i.imgur.com/0R2IF9w.png" alt="Slide 4">      
+                <img class="carousel-img" style="--i: 4"  src="https://i.imgur.com/DRyS7xv.png" alt="Slide 5">      
+                <img class="carousel-img" style="--i: 5"  src="https://i.imgur.com/X13Cy0b.png" alt="Slide 6">      
+                <img class="carousel-img" style="--i: 6"  src="https://i.imgur.com/mlg6W7S.png" alt="Slide 7">      
+                <img class="carousel-img" style="--i: 7"  src="https://i.imgur.com/OkLphOA.png" alt="Slide 8">      
+                <img class="carousel-img" style="--i: 8"  src="https://i.imgur.com/jfvL5X4.png" alt="Slide 9">      
+                <img class="carousel-img" style="--i: 9"  src="https://i.imgur.com/oNwcHez.png" alt="Slide 10">      
+                <img class="carousel-img" style="--i: 10" src="https://i.imgur.com/d8dSp1P.png" alt="Slide 11">      
+                <img class="carousel-img" style="--i: 11" src="https://i.imgur.com/Mg7WTwT.png" alt="Slide 12">
+               <img class="carousel-img" style="--i: 12"
+src="https://i.imgur.com/yYVcOJb.png" alt="Slide 13">
+               <img class="carousel-img" style="--i: 13"
+src="https://i.imgur.com/DBahwmx.png" alt="Slide 14">
+            </div>  
+        </div>
+    </div>
+</section>
+    <!-- ═══ KODE BARU: JUDUL PREDIKSI SKOR ═══ -->
+<div class="section-title-wrap" style="text-align: center; margin-top: 50px; margin-bottom: -10px;">
+  <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; color: #ffd700; text-transform: uppercase; letter-spacing: 1px; margin: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+    ⚽ HASIL PREDIKSI SKOR AKURAT ⚽
+  </h2>
+  <div style="width: 60px; height: 3px; background: #ffd700; margin: 8px auto 0 auto; border-radius: 2px;"></div>
+</div>
+
+<!-- KARTU PREDIKSI SKOR AKURAT -->
+<main id="matches" class="match-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.4);">
+        <span class="loader-ring"></span>Memuat PREDIKSI SKOR AKURAT...
+    </div>
+</main>
+
+<a href="https://gajahbolamvp.com" target="_blank" class="floating">MAIN SEKARANG</a>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// SUPABASE CONFIG (PASANGAN VALDAS & FIXED)
+// ═══════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://bejygkgfpeuhphrrelmy.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlanlna2dmcGV1aHBocnJlbG15Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2MzIwNTgsImV4cCI6MjA5NjIwODA1OH0.S8zDfyUu3tcmFeqZXkzj-nPkdW14zm-mLyYr3iBGvcM';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let allSchedules = [];
+let sliderIdx    = 0;
+let sliderSlides = [];
+
+// BURGER MENU
+const burger       = document.getElementById('burger');
+const dropdownCard = document.getElementById('dropdownCard');
+burger.addEventListener('click', e => {
+    dropdownCard.classList.toggle('active');
+    e.stopPropagation();
+});
+document.addEventListener('click', () => dropdownCard.classList.remove('active'));
+
+// LOAD MARQUEE
+async function loadMarquee() {
+    try {
+        const { data, error } = await db.from('marquee').select('text').eq('is_active', true).order('created_at', { ascending: false });
+        if (error) throw error;
+        if (data && data.length > 0) {
+            document.getElementById('marqueeText').textContent = data.map(r => r.text).join('   ●   ');
+        } else {
+            document.getElementById('marqueeText').textContent = "📢 GAJAHBOLA: Prediksi Terakurat Hari Ini!";
+        }
+    } catch (e) {
+        document.getElementById('marqueeText').textContent = "📢 GAJAHBOLA: Prediksi Terakurat Hari Ini!";
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// NEW INFINITE BANNER SLIDER (SMOOTH LOOP)
+// ═══════════════════════════════════════════════════════
+let isTransitioning = false;
+
+async function loadBanner() {
+    try {
+        const { data, error } = await db.from('banner').select('*').eq('is_active', true).order('sort_order', { ascending: true });
+        if (error) throw error;
+        if (!data || data.length === 0) return;
+        
+        const sw = document.getElementById('slider');
+        const dc = document.getElementById('dotsContainer');
+        sw.innerHTML = ''; dc.innerHTML = '';
+        
+        sliderSlides = data;
+        sliderIdx = 1; // Mulai dari index 1 (karena index 0 berisi klon gambar terakhir)
+
+        // 1. Buat Indikator Dots asli
+        data.forEach((_, i) => {
+            const dot = document.createElement('div'); 
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => goToSlide(i + 1)); 
+            dc.appendChild(dot);
+        });
+
+        // 2. Tambahkan Klon Gambar Terakhir di paling depan
+        const lastClone = document.createElement('div'); lastClone.className = 'slide';
+        const imgLast = document.createElement('img'); imgLast.src = data[data.length - 1].image_url;
+        lastClone.appendChild(imgLast); sw.appendChild(lastClone);
+
+        // 3. Tambahkan Semua Gambar Asli dari Supabase
+        data.forEach((banner) => {
+            const slide = document.createElement('div'); slide.className = 'slide';
+            const img = document.createElement('img'); img.src = banner.image_url; img.alt = banner.alt_text || 'Banner';
+            slide.appendChild(img); sw.appendChild(slide);
+        });
+
+        // 4. Tambahkan Klon Gambar Pertama di paling belakang
+        const firstClone = document.createElement('div'); firstClone.className = 'slide';
+        const imgFirst = document.createElement('img'); imgFirst.src = data[0].image_url;
+        firstClone.appendChild(imgFirst); sw.appendChild(firstClone);
+
+        // Set posisi awal container ke gambar asli pertama tanpa animasi
+        sw.style.transition = 'none';
+        sw.style.transform = `translateX(-${sliderIdx * 100}%)`;
+
+    } catch (e) { console.warn('Banner load error:', e.message); }
+}
+
+function moveSliderSmooth(targetIdx) {
+    if (isTransitioning || !sliderSlides.length) return;
+    isTransitioning = true;
+    
+    const sw = document.getElementById('slider');
+    sliderIdx = targetIdx;
+
+    // Jalankan efek geser mulus
+    sw.style.transition = 'transform 0.5s ease-in-out';
+    sw.style.transform = `translateX(-${sliderIdx * 100}%)`;
+
+    updateDots();
+}
+
+function goToSlide(targetIdx) {
+    moveSliderSmooth(targetIdx);
+}
+
+function updateDots() {
+    let dotIdx = sliderIdx - 1;
+    if (sliderIdx === 0) dotIdx = sliderSlides.length - 1;
+    if (sliderIdx === sliderSlides.length + 1) dotIdx = 0;
+
+    document.querySelectorAll('.dot').forEach((d, i) => { 
+        d.className = 'dot' + (i === dotIdx ? ' active' : ''); 
+    });
+}
+
+// Efek sulap: Melompat instan tanpa animasi saat transisi klon selesai
+document.getElementById('slider').addEventListener('transitionend', () => {
+    const sw = document.getElementById('slider');
+    isTransitioning = false;
+
+    // Jika mentok di klon paling akhir, balikkan instan ke gambar asli pertama
+    if (sliderIdx === sliderSlides.length + 1) {
+        sw.style.transition = 'none';
+        sliderIdx = 1;
+        sw.style.transform = `translateX(-${sliderIdx * 100}%)`;
+    }
+    
+    // Jika mentok di klon paling awal, balikkan instan ke gambar asli terakhir
+    if (sliderIdx === 0) {
+        sw.style.transition = 'none';
+        sliderIdx = sliderSlides.length;
+        sw.style.transform = `translateX(-${sliderIdx * 100}%)`;
+    }
+});
+
+function initSliderControls() {
+    document.getElementById('nextBtn').onclick = () => moveSliderSmooth(sliderIdx + 1);
+    document.getElementById('prevBtn').onclick = () => moveSliderSmooth(sliderIdx - 1);
+    
+    // Geser otomatis setiap 3.5 detik ke arah kanan secara berkesinambungan
+    setInterval(() => {
+        moveSliderSmooth(sliderIdx + 1);
+    }, 3500);
+}
+
+// LOAD JADWAL
+async function loadJadwal() {
+    try {
+        const { data, error } = await db.from('jadwal').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        allSchedules = data || [];
+        buildLeagueTabs();
+        renderTable(allSchedules);
+    } catch (e) {
+        document.getElementById('scheduleBody').innerHTML = `<tr><td colspan="4" style="text-align:center;color:#fc8181;padding:20px;">Gagal memuat jadwal.</td></tr>`;
+    }
+}
+
+function buildLeagueTabs() {
+    const leagues = ['ALL', ...new Set(allSchedules.map(s => s.league).filter(Boolean))];
+    document.getElementById('tabFilter').innerHTML = leagues.map(l => `<button class="tab-btn${l === 'ALL' ? ' active' : ''}" onclick="filterLeague('${l}')">${l === 'ALL' ? 'SEMUA' : l}</button>`).join('');
+}
+
+function filterLeague(league) {
+    document.querySelectorAll('.tab-btn').forEach(btn => { btn.classList.toggle('active', (league === 'ALL' && btn.textContent.trim() === 'SEMUA') || btn.textContent.trim() === league); });
+    renderTable(league === 'ALL' ? allSchedules : allSchedules.filter(s => s.league === league));
+}
+
+function renderTable(data) {
+    const body = document.getElementById('scheduleBody');
+    if (!data.length) { body.innerHTML = `<tr><td colspan="4"><div class="state-msg">Tidak ada jadwal tersedia</div></td></tr>`; return; }
+    body.innerHTML = data.map(s => {
+        // PERBAIKAN: Menggunakan Regex (/ vs /i) supaya fleksibel memecah 'vs', 'VS', atau 'Vs'
+        const parts = (s.match_name || '').split(/ vs /i);
+        const home = parts[0]?.trim() || s.match_name || '—';
+        const away = parts[1]?.trim() || '';
+        
+        const homeLogo = s.home_logo ? `<img src="${s.home_logo}" style="width:22px;height:22px;object-fit:contain;border-radius:50%;vertical-align:middle;margin-right:4px;background:rgba(255,255,255,0.1);" onerror="this.style.display='none'">` : '';
+        const awayLogo = s.away_logo ? `<img src="${s.away_logo}" style="width:22px;height:22px;object-fit:contain;border-radius:50%;vertical-align:middle;margin-left:4px;background:rgba(255,255,255,0.1);" onerror="this.style.display='none'">` : '';
+        
+        return `<tr>
+            <td style="white-space:nowrap;font-weight:700;color:#ffd700;">${s.time || '—'} WIB</td>
+            <td style="color:#ffd700; font-weight:bold;">${s.league || '—'}</td>
+            <td>${homeLogo}${home} ${away ? `<span style="color:#ffd700;font-weight:800;margin:0 4px;">vs</span> ${away}${awayLogo}` : ''}</td>
+            <td style="font-family:'Barlow Condensed'; font-weight:800; color:#ffd700;">${s.prob || '—'}</td>
+        </tr>`;
+    }).join('');
+}
+// LOAD HASIL
+async function loadHasil() {
+    try {
+        const { data, error } = await db.from('hasil').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        renderCards(data || []);
+    } catch (e) {
+        document.getElementById('matches').innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#fc8181;padding:30px;">Gagal memuat hasil.</div>`;
+    }
+}
+
+function renderCards(data) {
+    const container = document.getElementById('matches');
+    if (!data.length) { container.innerHTML = `<div style="grid-column:1/-1;"><div class="state-msg">Belum ada PREDIKSI SKOR AKURAT</div></div>`; return; }
+    container.innerHTML = data.map(m => {
+        const homeLogo = m.home_logo ? `<img src="${m.home_logo}" onerror="this.replaceWith(createPlaceholder())">` : `<div class="team-logo-placeholder">⚽</div>`;
+        const awayLogo = m.away_logo ? `<img src="${m.away_logo}" onerror="this.replaceWith(createPlaceholder())">` : `<div class="team-logo-placeholder">⚽</div>`;
+        const predText = `Prediksi ${m.home} vs ${m.away}: Skor ${m.score} — Analisa by GAJAHBOLA`;
+        
+        // Mengambil data waktu (mendukung nama kolom 'match_time' ataupun 'waktu')
+        const waktuPertandingan = m.match_time || m.waktu || '';
+
+        return `<div class="card">
+            <!-- Tampilan Tanggal & Waktu di Atas Logo Tim -->
+            ${waktuPertandingan ? `
+            <div class="match-time-display" style="color: #ffd700; font-size: 12px; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px; opacity: 0.9;">
+                 ${waktuPertandingan}
+            </div>` : ''}
+
+            <div class="teams">
+                <div class="team">${homeLogo}<p>${m.home || '—'}</p></div>
+                <div class="vs">VS</div>
+                <div class="team">${awayLogo}<p>${m.away || '—'}</p></div>
+            </div>
+            <div class="score">${m.score || '—'}</div>
+            <button class="copy-btn" onclick="copyMatch('${predText.replace(/'/g,"\\'")}')">📋 Salin Prediksi</button>
+            <a href="https://gajahbolamvp.com" class="card-btn">PASANG SEKARANG</a>
+        </div>`;
+    }).join('');
+}
+
+function createPlaceholder() { const d = document.createElement('div'); d.className = 'team-logo-placeholder'; d.textContent = '⚽'; return d; }
+
+function copyMatch(text) {
+    navigator.clipboard.writeText(text).then(() => { alert('✅ Prediksi berhasil disalin!'); }).catch(() => {
+        const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); alert('✅ Prediksi berhasil disalin!');
+    });
+}
+
+async function init() {
+    await loadMarquee(); await loadBanner(); await loadJadwal(); await loadHasil(); initSliderControls();
+}
+document.addEventListener('DOMContentLoaded', init);
+
+// ═══════════════════════════════════════════════════════
+// KODE BARU: SUPABASE REALTIME CHANNEL LISTENER
+// ═══════════════════════════════════════════════════════
+
+// 1. Dengarkan perubahan data pada tabel 'jadwal'
+db.channel('realtime-jadwal')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'jadwal' }, (payload) => {
+      console.log('Ada pembaruan jadwal pertandingan:', payload);
+      loadJadwal(); // Memuat ulang tabel jadwal otomatis di layar depan
+  })
+  .subscribe();
+
+// 2. Dengarkan perubahan data pada tabel 'hasil'
+db.channel('realtime-hasil')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'hasil' }, (payload) => {
+      console.log('Ada pembaruan PREDIKSI SKOR AKURAT:', payload);
+      loadHasil(); // Memuat ulang kartu hasil otomatis di layar depan
+  })
+  .subscribe();
+</script>
+</body>
+</html>
