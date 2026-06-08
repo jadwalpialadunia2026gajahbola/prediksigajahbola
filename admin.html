@@ -531,7 +531,7 @@
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <img src="https://i.imgur.com/DuwlIfJ.png" alt="Logo">
+    <img src="https://i.imgur.com/S2yQBnt.png" alt="Logo">
     <span class="sidebar-badge">ADMIN</span>
   </div>
   <nav class="sidebar-nav">
@@ -983,11 +983,8 @@ function openSidebar() {
   document.getElementById('overlay').classList.add('show');
 }
 function closeSidebar() {
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('overlay');
-
-if (sidebar) sidebar.classList.remove('open');
-if (overlay) overlay.classList.remove('show');
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
 }
 
 // ═══════════════════════════════════════════
