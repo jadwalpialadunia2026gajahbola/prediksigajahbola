@@ -990,13 +990,13 @@ function closeSidebar() {
 // ═══════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════
-function closeSidebar() {
-    const overlay = document.getElementById('overlay');
-
-    if (overlay) {
-        overlay.classList.remove('show');
-    }
-}
+function toast(msg, type = 'success') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type] || '•'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => {
     el.style.opacity = '0';
     el.style.transition = 'opacity 0.3s';
     setTimeout(() => el.remove(), 300);
