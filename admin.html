@@ -983,10 +983,12 @@ function openSidebar() {
   document.getElementById('overlay').classList.add('show');
 }
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
 
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
+}
 // ═══════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════
