@@ -1125,12 +1125,20 @@ async function loadJadwal() {
 }
 
 async function addJadwal() {
-  const time       = document.getElementById('j-time').value;
+  const time       = document.getElementById('j-time').value.trim();
   const league     = getLeagueValue('j');
   const match_name = document.getElementById('j-match').value.trim();
   const prob       = document.getElementById('j-prob').value.trim();
-  const home_logo  = document.getElementById('j-home-b64').value || null;
-  const away_logo  = document.getElementById('j-away-b64').value || null;
+  
+  // --- PERUBAHAN DI SINI ---
+  // Kita tambahkan .trim() dan hapus tanda kutip agar tidak error 400
+  let home_logo = document.getElementById('j-home-b64').value.trim().replace(/"/g, '');
+  let away_logo = document.getElementById('j-away-b64').value.trim().replace(/"/g, '');
+  
+  // Jika hasilnya kosong setelah dibersihkan, set jadi null
+  home_logo = home_logo === "" ? null : home_logo;
+  away_logo = away_logo === "" ? null : away_logo;
+  // -------------------------
 
   if (!time)       return toast('Waktu wajib diisi!', 'error');
   if (!league)     return toast('Nama liga wajib diisi!', 'error');
